@@ -22,6 +22,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+use frame_system_rpc_runtime_api::runtime_decl_for_AccountNonceApi::AccountNonceApi;
 use smallvec::smallvec;
 use sp_api::impl_runtime_apis;
 use sp_core::{
