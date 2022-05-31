@@ -26,6 +26,7 @@ use sp_runtime::traits::Saturating;
 use crate::Pallet as AutomationTime;
 
 const SEED: u32 = 0;
+const X_TIMES: u32 = 5;
 // existential deposit multiplier
 const ED_MULTIPLIER: u32 = 1_000;
 
@@ -102,8 +103,8 @@ benchmarks! {
 			times.push(hour);
 		}
 
-		let task_id: T::Hash = schedule_notify_tasks::<T>(caller.clone(), times.clone(), T::MaxTasksPerSlot::get() - 1);
-		let provided_id: Vec<u8> = vec![(T::MaxTasksPerSlot::get()/256).try_into().unwrap(), (T::MaxTasksPerSlot::get()%256).try_into().unwrap()];
+		let task_id: T::Hash = schedule_notify_tasks::<T>(caller.clone(), times.clone(), X_TIMES - 1);
+		let provided_id: Vec<u8> = vec![(X_TIMES/256).try_into().unwrap(), (X_TIMES%256).try_into().unwrap()];
 		let transfer_amount = T::NativeTokenExchange::minimum_balance().saturating_mul(ED_MULTIPLIER.into());
 		T::NativeTokenExchange::deposit_creating(&caller, transfer_amount.clone());
 	}: schedule_notify_task(RawOrigin::Signed(caller), provided_id, times, vec![4, 5])
@@ -132,8 +133,8 @@ benchmarks! {
 			times.push(hour);
 		}
 
-		let task_id: T::Hash = schedule_notify_tasks::<T>(caller.clone(), times.clone(), T::MaxTasksPerSlot::get() - 1);
-		let provided_id: Vec<u8> = vec![(T::MaxTasksPerSlot::get()/256).try_into().unwrap(), (T::MaxTasksPerSlot::get()%256).try_into().unwrap()];
+		let task_id: T::Hash = schedule_notify_tasks::<T>(caller.clone(), times.clone(), X_TIMES - 1);
+		let provided_id: Vec<u8> = vec![(X_TIMES/256).try_into().unwrap(), (X_TIMES%256).try_into().unwrap()];
 	}: schedule_native_transfer_task(RawOrigin::Signed(caller), provided_id, times, recipient, transfer_amount)
 
 	cancel_scheduled_task_full {
@@ -145,7 +146,7 @@ benchmarks! {
 			times.push(hour);
 		}
 
-		let task_id: T::Hash = schedule_notify_tasks::<T>(caller.clone(), times, T::MaxTasksPerSlot::get());
+		let task_id: T::Hash = schedule_notify_tasks::<T>(caller.clone(), times, X_TIMES);
 	}: cancel_task(RawOrigin::Signed(caller), task_id)
 
 	force_cancel_scheduled_task {
@@ -164,7 +165,7 @@ benchmarks! {
 			times.push(hour);
 		}
 
-		let task_id: T::Hash = schedule_notify_tasks::<T>(caller.clone(), times, T::MaxTasksPerSlot::get());
+		let task_id: T::Hash = schedule_notify_tasks::<T>(caller.clone(), times, X_TIMES);
 	}: force_cancel_task(RawOrigin::Root, task_id)
 
 	run_notify_task {
@@ -298,7 +299,7 @@ benchmarks! {
 		let last_time_slot: u64 = 7200;
 		let current_time = 10800;
 
-		for i in 0..T::MaxTasksPerSlot::get() {
+		for i in 0..X_TIMES {
 			let provided_id: Vec<u8> = vec![(i/256).try_into().unwrap(), (i%256).try_into().unwrap()];
 			let task_id = AutomationTime::<T>::schedule_task(caller.clone(), provided_id.clone(), vec![current_time.into()]).unwrap();
 			let task = Task::<T>::create_event_task(caller.clone(), provided_id, vec![current_time.into()].try_into().unwrap(), vec![4, 5, 6]);
@@ -313,6 +314,6 @@ benchmarks! {
 		let new_time_slot: u64 = 14400;
 		let diff = 1;
 
-		schedule_notify_tasks::<T>(caller.clone(), vec![new_time_slot], T::MaxTasksPerSlot::get());
+		schedule_notify_tasks::<T>(caller.clone(), vec![new_time_slot], X_TIMES);
 	}: { AutomationTime::<T>::shift_missed_tasks(last_time_slot, diff) }
 }

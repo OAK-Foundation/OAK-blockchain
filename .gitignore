@@ -16,3 +16,8 @@
 # Parachain registration files
 genesis-state
 genesis-wasm
+
+# Editor
+.idea/
+.vscode/
+.vim/
