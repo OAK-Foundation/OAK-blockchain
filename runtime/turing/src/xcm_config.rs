@@ -7,7 +7,7 @@ use super::{
 use core::marker::PhantomData;
 use frame_support::{
 	match_types, parameter_types,
-	traits::{Everything, Nothing},
+	traits::{Everything, Nothing, OriginTrait},
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
@@ -27,6 +27,7 @@ use xcm_builder::{
 	SignedToAccountId32, SovereignSignedViaLocation, TakeRevenue, TakeWeightCredit,
 };
 use xcm_executor::{traits::ShouldExecute, Config, XcmExecutor};
+use xcm_executor::traits::ConvertOrigin;
 
 // ORML imports
 use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key, MultiCurrency};
@@ -81,6 +82,9 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	// Native converter for sibling Parachains; will convert to a `SiblingPara` origin when
 	// recognized.
 	SiblingParachainAsNative<cumulus_pallet_xcm::Origin, Origin>,
+	// Sovereign account converter; this attempts to derive an `AccountId32` from the origin
+	// X2 multilocation from a sibling Parachains and then turn that into the usual `Signed` origin.
+	SovereignSignedAsX2Native<cumulus_pallet_xcm::Origin, Origin>,
 	// Native signed account converter; this just converts an `AccountId32` origin into a normal
 	// `Origin::Signed` origin of the same 32-byte value.
 	SignedAccountId32AsNative<RelayNetwork, Origin>,
@@ -555,5 +559,35 @@ pub struct AccountIdToMultiLocation;
 impl Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
 	fn convert(account: AccountId) -> MultiLocation {
 		X1(AccountId32 { network: NetworkId::Any, id: account.into() }).into()
+	}
+}
+
+pub struct SovereignSignedAsX2Native<ParachainOrigin, Origin>(
+	PhantomData<(ParachainOrigin, Origin)>,
+);
+impl<ParachainOrigin: From<u32>, Origin: OriginTrait + From<ParachainOrigin>> ConvertOrigin<Origin>
+	for SovereignSignedAsX2Native<ParachainOrigin, Origin>
+where
+	Origin::AccountId: From<[u8; 32]>,
+{
+	fn convert_origin(
+		origin: impl Into<MultiLocation>,
+		kind: OriginKind,
+	) -> Result<Origin, MultiLocation> {
+		let origin = origin.into();
+		log::trace!(
+			target: "xcm::origin_conversion",
+			"SovereignSignedAsX2Native origin: {:?}, kind: {:?}",
+			origin, kind,
+		);
+		match (kind, origin) {
+			(
+				OriginKind::Native,
+				MultiLocation { parents: 1, interior: X2(Junction::Parachain(_), Junction::AccountId32 { id, network: _ }) },
+			) => {
+				Ok(Origin::signed(id.into()))
+			},
+			(_, origin) => Err(origin),
+		}
 	}
 }
