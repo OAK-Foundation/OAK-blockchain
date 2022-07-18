@@ -84,7 +84,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	SiblingParachainAsNative<cumulus_pallet_xcm::Origin, Origin>,
 	// Sovereign account converter; this attempts to derive an `AccountId32` from the origin
 	// X2 multilocation from a sibling Parachains and then turn that into the usual `Signed` origin.
-	SovereignSignedAsX2Native<cumulus_pallet_xcm::Origin, Origin>,
+	SignedAccountId32AsX2Native<cumulus_pallet_xcm::Origin, Origin>,
 	// Native signed account converter; this just converts an `AccountId32` origin into a normal
 	// `Origin::Signed` origin of the same 32-byte value.
 	SignedAccountId32AsNative<RelayNetwork, Origin>,
@@ -562,11 +562,11 @@ impl Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
 	}
 }
 
-pub struct SovereignSignedAsX2Native<ParachainOrigin, Origin>(
+pub struct SignedAccountId32AsX2Native<ParachainOrigin, Origin>(
 	PhantomData<(ParachainOrigin, Origin)>,
 );
 impl<ParachainOrigin: From<u32>, Origin: OriginTrait + From<ParachainOrigin>> ConvertOrigin<Origin>
-	for SovereignSignedAsX2Native<ParachainOrigin, Origin>
+	for SignedAccountId32AsX2Native<ParachainOrigin, Origin>
 where
 	Origin::AccountId: From<[u8; 32]>,
 {
@@ -577,7 +577,7 @@ where
 		let origin = origin.into();
 		log::trace!(
 			target: "xcm::origin_conversion",
-			"SovereignSignedAsX2Native origin: {:?}, kind: {:?}",
+			"SignedAccountId32AsX2Native origin: {:?}, kind: {:?}",
 			origin, kind,
 		);
 		match (kind, origin) {
