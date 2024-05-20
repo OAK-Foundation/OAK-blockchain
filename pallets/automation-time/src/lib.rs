@@ -60,7 +60,7 @@ use frame_support::{
 };
 use frame_system::pallet_prelude::*;
 use orml_traits::{location::Reserve, FixedConversionRateProvider, MultiCurrency};
-use pallet_parachain_staking::DelegatorActions;
+// use pallet_parachain_staking::DelegatorActions;
 use pallet_timestamp::{self as timestamp};
 pub use pallet_xcmp_handler::InstructionSequence;
 use pallet_xcmp_handler::XcmpTransactor;
@@ -171,7 +171,7 @@ pub mod pallet {
 		/// Handler for fees
 		type FeeHandler: HandleFees<Self>;
 
-		type DelegatorActions: DelegatorActions<Self::AccountId, BalanceOf<Self>>;
+		// type DelegatorActions: DelegatorActions<Self::AccountId, BalanceOf<Self>>;
 
 		/// The overarching call type.
 		type Call: Parameter
@@ -1134,31 +1134,37 @@ pub mod pallet {
 			let fee_amount = fee_amount.unwrap();
 
 			let reserved_funds = account_minimum.saturating_add(fee_amount);
-			match T::DelegatorActions::get_delegator_stakable_free_balance(&delegator)
-				.checked_sub(&reserved_funds)
-			{
-				Some(delegation) => {
-					match T::DelegatorActions::delegator_bond_more(
-						&delegator, &collator, delegation,
-					) {
-						Ok(_) => (
-							<T as Config>::WeightInfo::run_auto_compound_delegated_stake_task(),
-							None,
-						),
-						Err(e) => (
-							<T as Config>::WeightInfo::run_auto_compound_delegated_stake_task(),
-							Some(e.error),
-						),
-					}
-				},
-				None => {
-					// InsufficientBalance
-					(
-						<T as Config>::WeightInfo::run_auto_compound_delegated_stake_task(),
-						Some(Error::<T>::InsufficientBalance.into()),
-					)
-				},
-			}
+
+
+			(
+				<T as Config>::WeightInfo::run_auto_compound_delegated_stake_task(),
+				None,
+			)
+			// match T::DelegatorActions::get_delegator_stakable_free_balance(&delegator)
+			// 	.checked_sub(&reserved_funds)
+			// {
+			// 	Some(delegation) => {
+			// 		match T::DelegatorActions::delegator_bond_more(
+			// 			&delegator, &collator, delegation,
+			// 		) {
+			// 			Ok(_) => (
+			// 				<T as Config>::WeightInfo::run_auto_compound_delegated_stake_task(),
+			// 				None,
+			// 			),
+			// 			Err(e) => (
+			// 				<T as Config>::WeightInfo::run_auto_compound_delegated_stake_task(),
+			// 				Some(e.error),
+			// 			),
+			// 		}
+			// 	},
+			// 	None => {
+			// 		// InsufficientBalance
+			// 		(
+			// 			<T as Config>::WeightInfo::run_auto_compound_delegated_stake_task(),
+			// 			Some(Error::<T>::InsufficientBalance.into()),
+			// 		)
+			// 	},
+			// }
 		}
 
 		/// Attempt to decode and run the call.
