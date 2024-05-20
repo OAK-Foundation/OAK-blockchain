@@ -15,7 +15,7 @@ use sp_runtime::{traits::Convert, Percent};
 
 // Polkadot Imports
 use pallet_xcm::XcmPassthrough;
-use polkadot_parachain::primitives::Sibling;
+use polkadot_parachain_primitives::primitives::Sibling;
 
 // XCM Imports
 use xcm::latest::prelude::*;

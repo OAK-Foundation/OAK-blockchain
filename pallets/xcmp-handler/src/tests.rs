@@ -17,7 +17,7 @@
 use crate::{mock::*, Error, InstructionSequence};
 use frame_support::{assert_noop, assert_ok};
 use frame_system::RawOrigin;
-use polkadot_parachain::primitives::Sibling;
+use polkadot_parachain_primitives::primitives::Sibling;
 use sp_runtime::traits::{AccountIdConversion, Convert};
 use xcm::latest::{prelude::*, Weight};
 

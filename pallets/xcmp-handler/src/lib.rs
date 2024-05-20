@@ -42,18 +42,20 @@ pub mod migrations;
 use cumulus_primitives_core::ParaId;
 use frame_support::pallet_prelude::*;
 use xcm::latest::prelude::*;
+use sp_std::prelude::*;
 
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
 	use orml_traits::{location::Reserve, MultiCurrency};
-	use polkadot_parachain::primitives::Sibling;
+	use polkadot_parachain_primitives::primitives::Sibling;
 	use sp_runtime::{
 		traits::{AccountIdConversion, CheckedSub, Convert, SaturatedConversion},
 		TokenError::BelowMinimum,
 	};
 	use sp_std::prelude::*;
 	use xcm_executor::traits::WeightBounds;
+	use xcm::latest::prelude::*;
 
 	pub type MultiCurrencyId<T> = <<T as Config>::MultiCurrency as MultiCurrency<
 		<T as frame_system::Config>::AccountId,
